@@ -8,6 +8,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 import java.awt.*;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -15,10 +16,15 @@ import java.util.Date;
 import java.util.List;
 
 public class PdfGenerator {
-    private List<Deliveries> deliveries;
-    private PaySlip paySlip;
 
-    public PDDocument generatePdfDocument(PaySlip paySlip,List<Deliveries> deliveries) throws IOException {
+    private static final Color tableHeadColor = new Color(35, 60, 230);
+    private static final Color tableBodyColor = new Color(250, 249, 246);
+    private static final Color tableFooterColor = new Color(160, 232, 224);
+
+    private static final Format d_format = new SimpleDateFormat("dd/MM/yyyy");
+    private static final PDFont font = PDType1Font.HELVETICA;
+
+    public byte[] generatePdfDocument(PaySlip paySlip, List<Deliveries> deliveries) throws IOException {
         PDDocument document = new PDDocument();
         PDPage firstPage = new PDPage();
         document.addPage(firstPage);
@@ -27,11 +33,6 @@ public class PdfGenerator {
 
         int pageWidth = (int) firstPage.getTrimBox().getWidth();
         int pageHeight= (int) firstPage.getTrimBox().getHeight();
-
-        PDFont font = PDType1Font.HELVETICA;
-        PDFont bold = PDType1Font.HELVETICA_BOLD;
-
-        Format d_format = new SimpleDateFormat("dd/MM/yyyy");
 
         // logo
         PDImageXObject headImage= PDImageXObject.createFromFile("src/main/resources/img/logo.png", document);
@@ -61,9 +62,7 @@ public class PdfGenerator {
         payDetails.setTable(cellWidths, 25 , 30, pageHeight-200);
         payDetails.setTableFont(font, 14, Color.BLACK);
 
-        Color tableHeadColor = new Color(35, 60, 230);
-        Color tableBodyColor = new Color(250, 249, 246);
-        Color tableFooterColor = new Color(160, 232, 224);
+
 
         payDetails.addCell("Day", tableHeadColor, true);
         payDetails.addCell("Date", tableHeadColor, true);
@@ -122,10 +121,25 @@ public class PdfGenerator {
         summaryTable.addCell("Payable Amount", summaryTableColor, false);
         summaryTable.addCell("1050", summaryTableColor, false);
 
+
+        int [] ytdCellWidth = {120, 100};
+
+        myTableClass ytdTable = new myTableClass(document, contentStream);
+        ytdTable.setTable(ytdCellWidth, 25 , 350, pageHeight-450);
+        ytdTable.setTableFont(font, 14, Color.BLACK);
+
+        ytdTable.addCell("YTD Deliveries", summaryTableColor, false);
+        ytdTable.addCell( String.valueOf(totalDeliveries), summaryTableColor, false);
+        ytdTable.addCell("YTD Amount", summaryTableColor, false);
+        ytdTable.addCell( String.valueOf(total), summaryTableColor, false);
+
         contentStream.close();
 
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        document.save(byteArrayOutputStream);
+        document.close();
         // Return the PDDocument so that the caller can decide where and how to save/close it.
-        return document;
+        return byteArrayOutputStream.toByteArray();
     }
 
     private static class myTextClass {
@@ -190,6 +204,7 @@ public class PdfGenerator {
             this.colWidths = colWidths;
             this.cellHeights = cellHeights;
             this.yPosition = yPosition;
+            this.xPosition = xPosition;
             this.xInitialPosition = xPosition;
         }
 

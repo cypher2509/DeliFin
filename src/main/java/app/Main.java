@@ -1,6 +1,7 @@
 package app;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import paySlipGenerator.EmailSender;
 import paySlipGenerator.PdfGenerator;
 import config.MySQLConfig;
 import paySlipGenerator.PaySlip;
@@ -11,7 +12,6 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +39,7 @@ public class Main {
                 List<Deliveries> deliveries = new ArrayList<>();
                 sql = "SELECT * FROM Deliveries WHERE paySlipId = ?";
                 pstmt = conn.prepareStatement(sql);
+                assert paySlip != null;
                 pstmt.setInt(1, paySlip.getId());
                 rs = pstmt.executeQuery();
 
@@ -58,10 +59,10 @@ public class Main {
 
                 PdfGenerator pdfGenerator = new PdfGenerator();
                 PDDocument document = null;
+                byte[] pdfBytes = new byte[0];
 
                 try {
-                    document = pdfGenerator.generatePdfDocument(paySlip, deliveries);
-                    document.save("C:\\Users\\lokes\\OneDrive\\Documents\\invoice.pdf");
+                    pdfBytes = pdfGenerator.generatePdfDocument(paySlip, deliveries);
                     System.out.println("PDF generated successfully!");
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -74,6 +75,10 @@ public class Main {
                         }
                     }
                 }
+
+                EmailSender emailSender = new EmailSender();
+
+                emailSender.EmailSender(pdfBytes);
 
                 // Print PaySlip
                 System.out.println("Driver Name: " + paySlip.getDriverName());
