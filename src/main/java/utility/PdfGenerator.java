@@ -1,5 +1,7 @@
-package paySlipGenerator;
+package utility;
 
+import model.Deliveries;
+import model.PaySlip;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -35,11 +37,11 @@ public class PdfGenerator {
         int pageHeight= (int) firstPage.getTrimBox().getHeight();
 
         // logo
-        PDImageXObject headImage= PDImageXObject.createFromFile("src/main/resources/img/logo.png", document);
+            PDImageXObject headImage= PDImageXObject.createFromFile("src/main/resources/img/logo.png", document);
         contentStream.drawImage(headImage, 0, pageHeight-110, pageWidth, 120);
 
         //basic info variables
-        String name = paySlip.getDriverName();
+        String name = "to be added";
         int week = paySlip.getWeekNumber();
         String driverId  = paySlip.getDriverId();
 
@@ -79,9 +81,9 @@ public class PdfGenerator {
             payDetails.addCell(delivery.getDay(), tableBodyColor, false);
             payDetails.addCell(delivery.getDate(), tableBodyColor, false);
             payDetails.addCell(String.valueOf(delivery.getDeliveries()), tableBodyColor, false);
-            payDetails.addCell( String.valueOf(delivery.getPricePerDelivery()), tableBodyColor, false);
-            payDetails.addCell(String.valueOf(delivery.getAmount()), tableBodyColor, false);
-            total += delivery.getAmount();
+            payDetails.addCell( String.valueOf("00"), tableBodyColor, false);
+            payDetails.addCell(String.valueOf("00"), tableBodyColor, false);
+            total += 0;
             totalDeliveries += delivery.getDeliveries();
         }
 

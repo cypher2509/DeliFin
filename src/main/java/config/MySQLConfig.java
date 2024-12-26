@@ -1,5 +1,8 @@
 package config;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -30,4 +33,5 @@ public class MySQLConfig {
         System.out.println("Connected to MySQL database successfully.");
         return connection;
     }
+
 }

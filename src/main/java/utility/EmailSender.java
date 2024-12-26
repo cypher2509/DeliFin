@@ -1,4 +1,4 @@
-package paySlipGenerator;
+package utility;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -10,8 +10,8 @@ import jakarta.mail.util.ByteArrayDataSource;
 
 public class EmailSender {
 
-    public void EmailSender(byte[] fileBytes) {
-        String to = "lvpanchal@mun.ca";
+    public void EmailSender(byte[] fileBytes, String email) {
+        String to = email;
         String from = "lokeshpanchal.2002@gmail.com ";
         String host = "smtp.gmail.com";
         String username = "lokeshpanchal.2002@gmail.com";
