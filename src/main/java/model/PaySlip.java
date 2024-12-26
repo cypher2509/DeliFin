@@ -1,33 +1,44 @@
 package model;
+import java.util.List;
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "payslip") // Optional if the class name matches the table name
 public class PaySlip {
-
-    @Id
-    private String id; // Maps directly to the "id" column in the database
-
-    private int weekNumber; // Maps directly to the "weekNumber" column
-
-    private String driverId; // Maps directly to the "driverId" column
-
-    // No-argument constructor (required by JPA)
-    public PaySlip() {}
-    public PaySlip(String id, int weekNumber, String driverId) {
-        this.id = id;
-        this.weekNumber = weekNumber;
-        this.driverId = driverId;
-    }
+    private String firstName;
+    private String lastName;
+    private String driverId;
+    private int weekNumber;
+    private String invoiceNumber;
+    private String from;
+    private String to;
+    private List<Transaction> transactions;
+    private double gasOrBonus= 0;
+    private double insurance = 0;
+    private double deductions = 0;
+    private double payableAmount;
+    private int totalDeliveries;
 
     // Getters and Setters
-    public String getId() {
-        return id;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getDriverId() {
+        return driverId;
+    }
+
+    public void setDriverId(String driverId) {
+        this.driverId = driverId;
     }
 
     public int getWeekNumber() {
@@ -38,11 +49,80 @@ public class PaySlip {
         this.weekNumber = weekNumber;
     }
 
-    public String getDriverId() {
-        return driverId;
+    public String getInvoiceNumber() {
+        return invoiceNumber;
     }
 
-    public void setDriverId(String driverId) {
-        this.driverId = driverId;
+    public void setInvoiceNumber(String invoiceNumber) {
+        this.invoiceNumber = invoiceNumber;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public String getTo() {
+        return to;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
+    }
+
+    public List<Transaction> getTransactions() {
+        return transactions;
+    }
+
+    public void setTransactions(List<Transaction> transactions) {
+        this.transactions = transactions;
+    }
+
+    public double getGasOrBonus() {
+        return gasOrBonus;
+    }
+
+    public void setGasOrBonus(float gasOrBonus) {
+        this.gasOrBonus = gasOrBonus;
+    }
+
+    public double getInsurance() {
+        return insurance;
+    }
+    public void setInsurance(double insurance) {
+        this.insurance = insurance;
+    }
+
+    public double getDeductions() {
+        return deductions;
+    }
+    public void setDeductions(double deductions) {
+        this.deductions = deductions;
+    }
+
+    public void setId(String invoiceNumber) {
+        this.invoiceNumber = invoiceNumber;
+    }
+
+    public String getId() {
+        return invoiceNumber;
+    }
+
+    public double getPayableAmount() {
+        return payableAmount;
+    }
+
+    public void setPayableAmount(double payableAmount) {
+        this.payableAmount = payableAmount;
+    }
+
+    public int getTotalDeliveries() {
+        return totalDeliveries;
+    }
+    public void setTotalDeliveries(int totalDeliveries) {
+        this.totalDeliveries = totalDeliveries;
     }
 }

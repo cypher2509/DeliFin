@@ -1,6 +1,7 @@
 package utility;
 
 import model.Deliveries;
+import model.DeliveryDriver;
 import model.PaySlip;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -26,7 +27,7 @@ public class PdfGenerator {
     private static final Format d_format = new SimpleDateFormat("dd/MM/yyyy");
     private static final PDFont font = PDType1Font.HELVETICA;
 
-    public byte[] generatePdfDocument(PaySlip paySlip, List<Deliveries> deliveries) throws IOException {
+    public byte[] generatePdfDocument(PaySlip paySlip, List<Deliveries> deliveries, DeliveryDriver driver) throws IOException {
         PDDocument document = new PDDocument();
         PDPage firstPage = new PDPage();
         document.addPage(firstPage);
@@ -41,9 +42,10 @@ public class PdfGenerator {
         contentStream.drawImage(headImage, 0, pageHeight-110, pageWidth, 120);
 
         //basic info variables
-        String name = "to be added";
+        String name = driver.getFirstName() + " " + driver.getLastName();
         int week = paySlip.getWeekNumber();
-        String driverId  = paySlip.getDriverId();
+        String driverId  = driver.getId();
+        Float ratePerDelivery = driver.getRatePerDelivery();
 
         // driver info and date
         myTextClass header = new myTextClass(document, contentStream);
@@ -75,15 +77,14 @@ public class PdfGenerator {
         double total = 0;
         int totalDeliveries = 0;
 
-
         // Example rows
         for (Deliveries delivery : deliveries) {
             payDetails.addCell(delivery.getDay(), tableBodyColor, false);
             payDetails.addCell(delivery.getDate(), tableBodyColor, false);
             payDetails.addCell(String.valueOf(delivery.getDeliveries()), tableBodyColor, false);
-            payDetails.addCell( String.valueOf("00"), tableBodyColor, false);
-            payDetails.addCell(String.valueOf("00"), tableBodyColor, false);
-            total += 0;
+            payDetails.addCell( String.valueOf(ratePerDelivery), tableBodyColor, false);
+            payDetails.addCell(String.valueOf(ratePerDelivery * delivery.getDeliveries()), tableBodyColor, false);
+            total += ratePerDelivery * delivery.getDeliveries();
             totalDeliveries += delivery.getDeliveries();
         }
 
@@ -91,49 +92,58 @@ public class PdfGenerator {
         payDetails.addCell("", tableFooterColor, false);
         payDetails.addCell("", tableFooterColor, false);
         payDetails.addCell("", tableFooterColor, false);
-        payDetails.addCell(String.valueOf(total), tableFooterColor, false);
+        payDetails.addCell(String.format(java.util.Locale.US,"%.2f", total), tableFooterColor, false);
 
         myTableClass summaryTable = new myTableClass(document, contentStream);
+
+        double gasOrBonus = paySlip.getGasOrBonus();
+        double adminFees = (float)  (total * 0.02);
+        double insurance = paySlip.getInsurance();
+        double deductions = paySlip.getDeductions();
+        double payableAmount = (float) (total - adminFees - insurance - deductions + gasOrBonus);
+
+
+
 
         int [] cellWidth = {160, 60};
 
         Color summaryTableColor = Color.WHITE;
 
-        summaryTable.setTable(cellWidth, 25 , 30, pageHeight-450);
+        summaryTable.setTable(cellWidth, 25 , 30, pageHeight-550);
         summaryTable.setTableFont(font, 14, Color.BLACK);
 
         summaryTable.addCell("Packages Delivered", summaryTableColor, false);
         summaryTable.addCell( String.valueOf(totalDeliveries), summaryTableColor, false);
 
         summaryTable.addCell("Sub Total", summaryTableColor, false);
-        summaryTable.addCell(String.valueOf(total), summaryTableColor, false);
+        summaryTable.addCell(String.format(java.util.Locale.US,"%.2f", total), summaryTableColor, false);
 
         summaryTable.addCell("Admin fees", summaryTableColor, false);
-        summaryTable.addCell("1050", summaryTableColor, false);
+        summaryTable.addCell(String.format(java.util.Locale.US,"%.2f", total * 0.02), summaryTableColor, false);
 
         summaryTable.addCell("Gas or Bonus", summaryTableColor, false);
-        summaryTable.addCell("1050", summaryTableColor, false);
+        summaryTable.addCell(String.format(java.util.Locale.US,"%.2f",gasOrBonus ), summaryTableColor, false);
 
         summaryTable.addCell("Insurance", summaryTableColor, false);
-        summaryTable.addCell("1050", summaryTableColor, false);
+        summaryTable.addCell(String.format(java.util.Locale.US,"%.2f", insurance), summaryTableColor, false);
 
         summaryTable.addCell("Any other Deductions", summaryTableColor, false);
-        summaryTable.addCell("1050", summaryTableColor, false);
+        summaryTable.addCell(String.format(java.util.Locale.US,"%.2f", deductions ), summaryTableColor, false);
 
         summaryTable.addCell("Payable Amount", summaryTableColor, false);
-        summaryTable.addCell("1050", summaryTableColor, false);
+        summaryTable.addCell(String.format(java.util.Locale.US,"%.2f", payableAmount ), summaryTableColor, false);
 
 
         int [] ytdCellWidth = {120, 100};
 
         myTableClass ytdTable = new myTableClass(document, contentStream);
-        ytdTable.setTable(ytdCellWidth, 25 , 350, pageHeight-450);
+        ytdTable.setTable(ytdCellWidth, 25 , 350, pageHeight-550);
         ytdTable.setTableFont(font, 14, Color.BLACK);
 
         ytdTable.addCell("YTD Deliveries", summaryTableColor, false);
         ytdTable.addCell( String.valueOf(totalDeliveries), summaryTableColor, false);
         ytdTable.addCell("YTD Amount", summaryTableColor, false);
-        ytdTable.addCell( String.valueOf(total), summaryTableColor, false);
+        ytdTable.addCell( String.format(java.util.Locale.US,"%.2f", total), summaryTableColor, false);
 
         contentStream.close();
 

@@ -2,7 +2,8 @@ package main;
 
 import model.DeliveryDriver;
 import config.MySQLConfig;
-import model.DriverDeliverySummary;
+import model.DriverDeliveries;
+import model.DriverDeliveriesSummary;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -117,6 +118,7 @@ public class DriverController {
 
     // DELETE a driver
     @DeleteMapping("/{id}")
+
     public ResponseEntity<String> deleteDriver(@PathVariable String id) {
         try (Connection conn = MySQLConfig.getConnection()) {
             String sql = "DELETE FROM driver WHERE id = ?";
@@ -136,19 +138,20 @@ public class DriverController {
     }
 
     @GetMapping("/{driverId}/summary")
-    public ResponseEntity<List<DriverDeliverySummary>> getDeliveriesByDriver(
+    public ResponseEntity<DriverDeliveriesSummary> getDeliveriesByDriver(
             @PathVariable String driverId,
             @RequestParam(required = false) String period, // "weekly", "monthly", "yearly"
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer week) {
 
-        List<DriverDeliverySummary> summaries = new ArrayList<>();
+        List<DriverDeliveries> summaries = new ArrayList<>();
+        int totalDeliveries = 0;
+        double totalAmountPaid = 0.0;
 
         try (Connection conn = MySQLConfig.getConnection()) {
             StringBuilder sql = new StringBuilder(
-                    "SELECT d.date, d.deliveries, dr.rate_per_delivery, " +
-                            "       (d.deliveries * dr.rate_per_delivery) AS amount_paid " +
+                    "SELECT d.date, d.deliveries, (d.deliveries * dr.rate_per_delivery) AS amount_paid " +
                             "FROM deliveries d " +
                             "JOIN paySlip ps ON d.paySlipId = ps.id " +
                             "JOIN driver dr ON ps.driverId = dr.id " +
@@ -163,35 +166,40 @@ public class DriverController {
                 sql.append("AND YEAR(d.date) = ? ");
             }
 
-
             try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-                stmt.setString(1, driverId);
+                int paramIndex = 1;
+                stmt.setString(paramIndex++, driverId);
 
                 if ("weekly".equalsIgnoreCase(period) && week != null) {
-                    stmt.setInt(2, week);
+                    stmt.setInt(paramIndex++, week);
                 } else if ("monthly".equalsIgnoreCase(period) && month != null) {
-                    stmt.setInt(2, month);
+                    stmt.setInt(paramIndex++, month);
                 } else if ("yearly".equalsIgnoreCase(period) && year != null) {
-                    stmt.setInt(2, year);
+                    stmt.setInt(paramIndex++, year);
                 }
-                System.out.println(stmt.toString());
 
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
-                        DriverDeliverySummary summary = new DriverDeliverySummary();
+                        DriverDeliveries summary = new DriverDeliveries();
                         summary.setDate(rs.getString("date"));
                         summary.setDeliveries(rs.getInt("deliveries"));
                         summary.setAmountPaid(rs.getDouble("amount_paid"));
                         summaries.add(summary);
+
+                        totalDeliveries += summary.getDeliveries();
+                        totalAmountPaid += summary.getAmountPaid();
                     }
                 }
             }
 
-            return ResponseEntity.ok(summaries);
+            DriverDeliveriesSummary response = new DriverDeliveriesSummary(summaries, totalDeliveries, totalAmountPaid);
+            return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
 
 }

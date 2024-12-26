@@ -1,6 +1,6 @@
 package model;
 
-public class DriverDeliverySummary {
+public class DriverDeliveries {
     private String date;
     private int deliveries;
     private double amountPaid;
@@ -29,4 +29,5 @@ public class DriverDeliverySummary {
     public void setAmountPaid(double amountPaid) {
         this.amountPaid = amountPaid;
     }
+
 }
