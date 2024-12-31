@@ -141,9 +141,9 @@ public class PdfGenerator {
         ytdTable.setTableFont(font, 14, Color.BLACK);
 
         ytdTable.addCell("YTD Deliveries", summaryTableColor, false);
-        ytdTable.addCell( String.valueOf(totalDeliveries), summaryTableColor, false);
+        ytdTable.addCell( String.valueOf(paySlip.getYtdDeliveries()), summaryTableColor, false);
         ytdTable.addCell("YTD Amount", summaryTableColor, false);
-        ytdTable.addCell( String.format(java.util.Locale.US,"%.2f", total), summaryTableColor, false);
+        ytdTable.addCell( String.format(java.util.Locale.US,"%.2f",paySlip.getYtdEarnings()), summaryTableColor, false);
 
         contentStream.close();
 

@@ -9,9 +9,9 @@ import java.sql.SQLException;
 
 public class MySQLConfig {
     // Database credentials
-    private static final String URL = "jdbc:mysql://localhost:3306/delifin";
+    private static final String URL = "jdbc:mysql://delifin.c5kwyyk4g8ep.us-east-1.rds.amazonaws.com:3306/delifin";
     private static final String USER = "root";
-    private static final String PASSWORD = "L0kesh@123";
+    private static final String PASSWORD = "L0kesh123";
 
     /**
      * Establishes and returns a connection to the MySQL database.

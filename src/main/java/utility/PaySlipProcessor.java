@@ -48,11 +48,13 @@ public class PaySlipProcessor {
             String deliveriesSql = "INSERT INTO deliveries (paySlipId, day, date, deliveries) VALUES (?, ?, ?, ?)";
             try (PreparedStatement deliveriesStmt = conn.prepareStatement(deliveriesSql)) {
                 for (Deliveries delivery : deliveries) {
-                    deliveriesStmt.setString(1, paySlip.getId());
-                    deliveriesStmt.setString(2, delivery.getDay());
-                    deliveriesStmt.setString(3, delivery.getDate());
-                    deliveriesStmt.setInt(4, delivery.getDeliveries());
-                    deliveriesStmt.addBatch();
+                    if(delivery.getDeliveries()!=0){
+                        deliveriesStmt.setString(1, paySlip.getId());
+                        deliveriesStmt.setString(2, delivery.getDay());
+                        deliveriesStmt.setString(3, delivery.getDate());
+                        deliveriesStmt.setInt(4, delivery.getDeliveries());
+                        deliveriesStmt.addBatch();
+                    }
                 }
                 deliveriesStmt.executeBatch();
             }

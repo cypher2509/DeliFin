@@ -1,22 +1,25 @@
-//package main;
-//
-//import org.apache.pdfbox.pdmodel.PDDocument;
-//import utility.EmailSender;
-//import utility.PdfGenerator;
-//import model.PaySlip;
-//import model.Deliveries;
-//
-//
-//import java.io.IOException;
-//import java.sql.Connection;
-//import java.sql.PreparedStatement;
-//import java.sql.ResultSet;
-//import java.util.ArrayList;
-//import java.util.List;
-//
-//public class Main {
-//        public static void main(String[] args) {
-//            try (Connection conn = MySQLConfig.getConnection()) {
+package main;
+
+import config.MySQLConfig;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import utility.EmailSender;
+import utility.PdfGenerator;
+import model.PaySlip;
+import model.Deliveries;
+
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class Main {
+        public static void main(String[] args) {
+            try (Connection conn = MySQLConfig.getConnection()) {
+
 //                // Get PaySlip data
 //                String sql = "SELECT * FROM PaySlip WHERE id = ?";
 //                PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -95,9 +98,9 @@
 //                System.out.println("Driver Name: " + paySlip.getDriverName());
 //                System.out.println("Total Amount: " + paySlip.getTotalAmount());
 //                System.out.println("Deliveries: ");
-//
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//}
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+}

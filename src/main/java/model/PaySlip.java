@@ -15,6 +15,8 @@ public class PaySlip {
     private double deductions = 0;
     private double payableAmount;
     private int totalDeliveries;
+    private double ytdEarnings;
+    private int ytdDeliveries;
 
     // Getters and Setters
     public String getFirstName() {
@@ -124,5 +126,19 @@ public class PaySlip {
     }
     public void setTotalDeliveries(int totalDeliveries) {
         this.totalDeliveries = totalDeliveries;
+    }
+
+    public double getYtdEarnings() {
+        return ytdEarnings;
+    }
+    public void setYtdEarnings(double ytdEarnings) {
+        this.ytdEarnings = ytdEarnings;
+    }
+
+    public int getYtdDeliveries() {
+        return ytdDeliveries;
+    }
+    public void setYtdDeliveries(int ytdDeliveries) {
+        this.ytdDeliveries = ytdDeliveries;
     }
 }

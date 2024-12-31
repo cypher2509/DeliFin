@@ -1,5 +1,6 @@
 package main;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -56,7 +57,11 @@ public class PaySlipController {
 
                 // Use PdfDataReader to extract data
                 ObjectNode extractedData = PdfDataReader.extractPDFData(tempFile.getAbsolutePath());
-                results.add(extractedData);
+                System.out.println(extractedData.get("firstName")!=null);
+                if (extractedData.get("firstName") != null) {
+                    results.add(extractedData);
+                }
+
 
                 // Delete the temp file
                 tempFile.delete();
@@ -64,22 +69,70 @@ public class PaySlipController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(null); // Return error response for processing failure
             }
+
         }
+
+        ArrayNode unListedDrivers = objectMapper.createArrayNode(); ;
+        ArrayNode duplicatePaySlips = objectMapper.createArrayNode();
+        try (Connection conn = MySQLConfig.getConnection()) {
+            String sql = "SELECT email, rate_per_delivery FROM driver WHERE id = ?";
+
+            for(JsonNode payslip: results){
+                //checking if all drivers are listed
+                String driverId = String.valueOf((payslip.get("driverId").textValue()));
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1,driverId);
+                ResultSet rs = pstmt.executeQuery();
+                if (!rs.next()) {
+                    ObjectNode unListedDriver = objectMapper.createObjectNode();
+                    unListedDriver.put("driverId", driverId);
+                    unListedDriver.put("firstName",String.valueOf(payslip.get("firstName").textValue()));
+                    unListedDriver.put("lastName", String.valueOf(payslip.get("lastName").textValue()));
+                    unListedDrivers.add(unListedDriver);
+                }
+
+                //cheking for duplicate payslip records
+                String sql2 = "select * from payslip where id = ?";
+                String payslipId = String.valueOf((payslip.get("invoiceNumber").textValue()));
+                PreparedStatement pstmt2 = conn.prepareStatement(sql2);
+                pstmt2.setString(1,payslipId);
+                ResultSet rs2 = pstmt2.executeQuery();
+                if(rs2.next()){
+                    ObjectNode duplicatePayslip = objectMapper.createObjectNode();
+                    duplicatePayslip.put("weekNumber", (payslip.get("weekNumber")));
+                    duplicatePayslip.put("invoiceNumber", String.valueOf(payslip.get("invoiceNumber").textValue()));
+                    duplicatePaySlips.add(duplicatePayslip);
+                }
+            }
+        }
+        catch (Exception err){
+            System.out.println(err);
+        }
+
+
 
         // Return the extracted data for all uploaded files
         ObjectNode response = objectMapper.createObjectNode();
-        response.set("results", results);
+        if(results.size()==0 && duplicatePaySlips.size()==0 && duplicatePaySlips.size()==0) {
+            response.put("message", "Please upload valid pdf file.");
+        }
+        response.put("results", results);
+        response.put("unListedDrivers", unListedDrivers);
+        response.put("duplicatePaySlips", duplicatePaySlips);
+
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/process")
     public ResponseEntity<String> processPaySlips(@RequestBody PaySlipInput input) {
         input.getResults().forEach(paySlipDetails -> {
+
             // Create Driver object
             DeliveryDriver driver = new DeliveryDriver();
             driver.setId(paySlipDetails.getDriverId());
             driver.setFirstName(paySlipDetails.getFirstName());
             driver.setLastName(paySlipDetails.getLastName());
+
             // getting email and rate per delivery from database
             try (Connection conn = MySQLConfig.getConnection()) {
                 String sql = "SELECT email, rate_per_delivery FROM driver WHERE id = ?";
@@ -89,6 +142,14 @@ public class PaySlipController {
                 if (rs.next()) {
                     driver.setEmail(rs.getString("email"));
                     driver.setRatePerDelivery(rs.getFloat("rate_per_delivery"));
+                }
+                String sql2 = "CALL getDriverYearToDateInfo(?)";
+                PreparedStatement pstmt2 = conn.prepareStatement(sql2);
+                pstmt2.setString(1, driver.getId());
+                ResultSet rs2 = pstmt2.executeQuery();
+                if (rs2.next()) {
+                    paySlipDetails.setYtdEarnings(rs2.getDouble("earnings"));
+                    paySlipDetails.setYtdDeliveries(rs2.getInt("deliveries"));
                 }
             }
             catch (Exception err){
