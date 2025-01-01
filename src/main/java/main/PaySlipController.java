@@ -143,6 +143,9 @@ public class PaySlipController {
                     driver.setEmail(rs.getString("email"));
                     driver.setRatePerDelivery(rs.getFloat("rate_per_delivery"));
                 }
+                else{
+                    return;
+                }
                 String sql2 = "CALL getDriverYearToDateInfo(?)";
                 PreparedStatement pstmt2 = conn.prepareStatement(sql2);
                 pstmt2.setString(1, driver.getId());
@@ -150,6 +153,9 @@ public class PaySlipController {
                 if (rs2.next()) {
                     paySlipDetails.setYtdEarnings(rs2.getDouble("earnings"));
                     paySlipDetails.setYtdDeliveries(rs2.getInt("deliveries"));
+                }
+                else {
+                    return;
                 }
             }
             catch (Exception err){

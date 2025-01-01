@@ -153,7 +153,7 @@ public class DriverController {
             StringBuilder sql = new StringBuilder(
                     "SELECT d.date, d.deliveries, (d.deliveries * dr.rate_per_delivery) AS amount_paid " +
                             "FROM deliveries d " +
-                            "JOIN paySlip ps ON d.paySlipId = ps.id " +
+                            "JOIN payslip ps ON d.paySlipId = ps.id " +
                             "JOIN driver dr ON ps.driverId = dr.id " +
                             "WHERE dr.id = ? "
             );

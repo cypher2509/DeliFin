@@ -13,6 +13,7 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -38,7 +39,12 @@ public class PdfGenerator {
         int pageHeight= (int) firstPage.getTrimBox().getHeight();
 
         // logo
-            PDImageXObject headImage= PDImageXObject.createFromFile("src/main/resources/img/logo.png", document);
+        InputStream imageStream = getClass().getResourceAsStream("/img/logo.png");
+        if (imageStream == null) {
+            throw new IOException("Image file not found in resources: /img/logo.png");
+        }
+        PDImageXObject headImage = PDImageXObject.createFromByteArray(document, imageStream.readAllBytes(), "logo.png");
+        imageStream.close();
         contentStream.drawImage(headImage, 0, pageHeight-110, pageWidth, 120);
 
         //basic info variables

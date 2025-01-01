@@ -19,7 +19,7 @@ public class VehicleMaintenanceController {
     @PostMapping
     public ResponseEntity<String> addMaintenance(@RequestBody VehicleMaintenance maintenance) {
         try (Connection conn = MySQLConfig.getConnection()) {
-            String sql = "INSERT INTO VehicleMaintenance (number, cost, type, date, comments) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO vehicleMaintenance (number, cost, type, date, comments) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, maintenance.getNumber());
             pstmt.setDouble(2, maintenance.getCost());
@@ -39,7 +39,7 @@ public class VehicleMaintenanceController {
     public ResponseEntity<List<VehicleMaintenance>> getAllMaintenanceRecords() {
         List<VehicleMaintenance> maintenanceList = new ArrayList<>();
         try (Connection conn = MySQLConfig.getConnection()) {
-            String sql = "SELECT * FROM VehicleMaintenance";
+            String sql = "SELECT * FROM vehicleMaintenance";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -62,7 +62,7 @@ public class VehicleMaintenanceController {
     @GetMapping("/{id}")
     public ResponseEntity<VehicleMaintenance> getMaintenanceById(@PathVariable int id) {
         try (Connection conn = MySQLConfig.getConnection()) {
-            String sql = "SELECT * FROM VehicleMaintenance WHERE id = ?";
+            String sql = "SELECT * FROM vehicleMaintenance WHERE id = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
@@ -90,7 +90,7 @@ public class VehicleMaintenanceController {
     public ResponseEntity<List<VehicleMaintenance>> getMaintenanceByVehicleNumber(@PathVariable String number) {
         List<VehicleMaintenance> maintenanceList = new ArrayList<>();
         try (Connection conn = MySQLConfig.getConnection()) {
-            String sql = "SELECT * FROM VehicleMaintenance WHERE number = ?";
+            String sql = "SELECT * FROM vehicleMaintenance WHERE number = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, number);
             ResultSet rs = pstmt.executeQuery();
@@ -121,7 +121,7 @@ public class VehicleMaintenanceController {
     @PutMapping("/{id}")
     public ResponseEntity<String> updateMaintenance(@PathVariable int id, @RequestBody VehicleMaintenance maintenance) {
         try (Connection conn = MySQLConfig.getConnection()) {
-            String sql = "UPDATE VehicleMaintenance SET number = ?, cost = ?, type = ?, date = ?, comments = ? WHERE id = ?";
+            String sql = "UPDATE vehicleMaintenance SET number = ?, cost = ?, type = ?, date = ?, comments = ? WHERE id = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, maintenance.getNumber());
             pstmt.setDouble(2, maintenance.getCost());
@@ -145,7 +145,7 @@ public class VehicleMaintenanceController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteMaintenance(@PathVariable int id) {
         try (Connection conn = MySQLConfig.getConnection()) {
-            String sql = "DELETE FROM VehicleMaintenance WHERE id = ?";
+            String sql = "DELETE FROM vehicleMaintenance WHERE id = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
             int rowsDeleted = pstmt.executeUpdate();
