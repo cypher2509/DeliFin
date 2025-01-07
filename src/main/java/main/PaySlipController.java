@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import config.MySQLConfig;
-import model.Deliveries;
-import model.DeliveryDriver;
-import model.PaySlipInput;
+import entity.Deliveries;
+import entity.DeliveryDriver;
+import entity.PaySlipInput;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import utility.EmailSender;
 import utility.PaySlipProcessor;
@@ -38,6 +38,8 @@ public class PaySlipController {
     public ResponseEntity<ObjectNode> uploadPdfs(@RequestParam("files") MultipartFile[] files) {
         ObjectMapper objectMapper = new ObjectMapper();
         ArrayNode results = objectMapper.createArrayNode();
+        ArrayNode unListedDrivers = objectMapper.createArrayNode(); ;
+        ArrayNode duplicatePaySlips = objectMapper.createArrayNode();
 
         if (files.length == 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -72,8 +74,7 @@ public class PaySlipController {
 
         }
 
-        ArrayNode unListedDrivers = objectMapper.createArrayNode(); ;
-        ArrayNode duplicatePaySlips = objectMapper.createArrayNode();
+
         try (Connection conn = MySQLConfig.getConnection()) {
             String sql = "SELECT email, rate_per_delivery FROM driver WHERE id = ?";
 

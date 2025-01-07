@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import config.MySQLConfig;
 
-import model.DeliveryVehicle;
+import entity.DeliveryVehicle;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +34,7 @@ public class VehicleController {
                 ObjectNode vehicle = JsonNodeFactory.instance.objectNode();
                 vehicle.put("number", rs.getString("number"));
                 vehicle.put("make", rs.getString("make"));
-                vehicle.put("model", rs.getString("model"));
+                vehicle.put("entity", rs.getString("entity"));
                 vehicle.put("make_year", rs.getInt("make_year"));
                 vehicle.put("purchase_date", rs.getString("purchase_date"));
                 vehicles.add(vehicle);
@@ -62,7 +62,7 @@ public class VehicleController {
                 ObjectNode vehicle = JsonNodeFactory.instance.objectNode();
                 vehicle.put("number", rs.getString("number"));
                 vehicle.put("make", rs.getString("make"));
-                vehicle.put("model", rs.getString("model"));
+                vehicle.put("entity", rs.getString("entity"));
                 vehicle.put("make_year", rs.getInt("make_year"));
                 vehicle.put("purchase_date", rs.getString("purchase_date"));
                 return ResponseEntity.ok(vehicle);

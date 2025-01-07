@@ -31,7 +31,7 @@ drop table deliveryvehicle;
 create table if not exists DeliveryVehicle(
 	number varchar(50) primary key,
     make varchar(50),
-    model varchar(50),
+    entity varchar(50),
     make_year year,
 	purchase_date date    
 );

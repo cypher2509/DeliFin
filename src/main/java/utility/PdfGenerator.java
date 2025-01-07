@@ -1,8 +1,8 @@
 package utility;
 
-import model.Deliveries;
-import model.DeliveryDriver;
-import model.PaySlip;
+import entity.Deliveries;
+import entity.DeliveryDriver;
+import entity.PaySlip;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;

@@ -1,4 +1,4 @@
-package model;
+package entity;
 
 public class Transaction {
     private String transactionDate;

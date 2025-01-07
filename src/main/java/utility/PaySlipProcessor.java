@@ -1,9 +1,9 @@
 package utility;
 
 import config.MySQLConfig;
-import model.Deliveries;
-import model.DeliveryDriver;
-import model.PaySlip;
+import entity.Deliveries;
+import entity.DeliveryDriver;
+import entity.PaySlip;
 import org.springframework.stereotype.Service;
 
 import java.sql.Connection;

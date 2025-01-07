@@ -1,15 +1,20 @@
 package main;
 
-import model.VehicleMaintenance;
+import entity.VehicleMaintenance;
 import config.MySQLConfig;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @RestController
 @RequestMapping("/maintenance")
@@ -159,4 +164,5 @@ public class VehicleMaintenanceController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting maintenance record.");
         }
     }
+
 }
