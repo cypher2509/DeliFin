@@ -10,7 +10,7 @@ public class DeliveryDriver {
     private String firstName;
     private String lastName;
     private String email;
-    private Float ratePerDelivery;
+    private double ratePerDelivery;
 
     // Constructors
     public DeliveryDriver() {}
@@ -56,11 +56,11 @@ public class DeliveryDriver {
         this.email = email;
     }
 
-    public Float getRatePerDelivery() {
+    public double getRatePerDelivery() {
         return ratePerDelivery;
     }
 
-    public void setRatePerDelivery(Float ratePerDelivery) {
+    public void setRatePerDelivery(double ratePerDelivery) {
         this.ratePerDelivery = ratePerDelivery;
     }
 }

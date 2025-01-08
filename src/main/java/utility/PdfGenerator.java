@@ -51,7 +51,7 @@ public class PdfGenerator {
         String name = driver.getFirstName() + " " + driver.getLastName();
         int week = paySlip.getWeekNumber();
         String driverId  = driver.getId();
-        Float ratePerDelivery = driver.getRatePerDelivery();
+        Double ratePerDelivery = driver.getRatePerDelivery();
 
         // driver info and date
         myTextClass header = new myTextClass(document, contentStream);

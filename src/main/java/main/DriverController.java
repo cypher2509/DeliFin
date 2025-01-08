@@ -39,7 +39,7 @@ public class DriverController {
                 stmt.setString(2, driver.getFirstName());
                 stmt.setString(3, driver.getLastName());
                 stmt.setString(4, driver.getEmail());
-                stmt.setFloat(5, driver.getRatePerDelivery());
+                stmt.setDouble(5, driver.getRatePerDelivery());
                 stmt.executeUpdate();
             }
             return ResponseEntity.status(HttpStatus.CREATED).body("Driver created/updated successfully.");
@@ -109,7 +109,7 @@ public class DriverController {
                 stmt.setString(1, updatedDriver.getFirstName());
                 stmt.setString(2, updatedDriver.getLastName());
                 stmt.setString(3, updatedDriver.getEmail());
-                stmt.setFloat(4, updatedDriver.getRatePerDelivery());
+                stmt.setDouble(4, updatedDriver.getRatePerDelivery());
                 stmt.setString(5, id);
                 int rowsUpdated = stmt.executeUpdate();
                 if (rowsUpdated > 0) {

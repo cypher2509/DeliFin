@@ -5,6 +5,8 @@ public class PaySlip {
     private String firstName;
     private String lastName;
     private String driverId;
+    private String email;
+    private double rate_per_delivery;
     private int weekNumber;
     private String invoiceNumber;
     private String from;
@@ -41,6 +43,19 @@ public class PaySlip {
 
     public void setDriverId(String driverId) {
         this.driverId = driverId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    public double getRate_per_delivery() {
+        return rate_per_delivery;
+    }
+    public void setRate_per_delivery(double rate_per_delivery) {
+        this.rate_per_delivery = rate_per_delivery;
     }
 
     public int getWeekNumber() {

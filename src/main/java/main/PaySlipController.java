@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,64 +53,62 @@ public class PaySlipController {
                         .body(null); // Return error response for invalid file
             }
 
-            try {
+            try (Connection conn = MySQLConfig.getConnection()){
                 // Save the uploaded file temporarily
                 File tempFile = File.createTempFile("uploaded-", ".pdf");
                 file.transferTo(tempFile);
 
                 // Use PdfDataReader to extract data
                 ObjectNode extractedData = PdfDataReader.extractPDFData(tempFile.getAbsolutePath());
-                System.out.println(extractedData.get("firstName")!=null);
-                if (extractedData.get("firstName") != null) {
-                    results.add(extractedData);
-                }
+                if (extractedData.get("firstName") != null) { //checks if data reader read the file correctly
 
+                    String sql = "SELECT email, rate_per_delivery FROM driver WHERE id = ?";
+
+                        //checking if all drivers are listed and adding email and rate_per_delivery from database
+                        String driverId = String.valueOf((extractedData.get("driverId").textValue()));
+                        PreparedStatement pstmt = conn.prepareStatement(sql);
+                        pstmt.setString(1,driverId);
+                        ResultSet rs = pstmt.executeQuery();
+                        if(rs.next()) {
+                            extractedData.put("email", rs.getString("email"));
+                            extractedData.put("rate_per_delivery", rs.getString("rate_per_delivery"));
+                        }
+                        else {
+                            ObjectNode unListedDriver = objectMapper.createObjectNode();
+                            unListedDriver.put("driverId", driverId);
+                            unListedDriver.put("firstName",String.valueOf(extractedData.get("firstName").textValue()));
+                            unListedDriver.put("lastName", String.valueOf(extractedData.get("lastName").textValue()));
+                            unListedDrivers.add(unListedDriver);
+                        }
+
+                        //cheking for duplicate payslip records
+                        String sql2 = "select * from payslip where id = ?";
+                        String payslipId = String.valueOf((extractedData.get("invoiceNumber").textValue()));
+                        PreparedStatement pstmt2 = conn.prepareStatement(sql2);
+                        pstmt2.setString(1,payslipId);
+                        ResultSet rs2 = pstmt2.executeQuery();
+                        if(rs2.next()) {
+                            ObjectNode duplicatePayslip = objectMapper.createObjectNode();
+                            duplicatePayslip.put("weekNumber", (extractedData.get("weekNumber")));
+                            duplicatePayslip.put("invoiceNumber", String.valueOf(extractedData.get("invoiceNumber").textValue()));
+                            duplicatePaySlips.add(duplicatePayslip);
+                        }
+                        results.add(extractedData);
+                }
+                else{
+                    ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body("Upload a valid file");
+                }
 
                 // Delete the temp file
                 tempFile.delete();
             } catch (IOException e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(null); // Return error response for processing failure
-            }
-
-        }
-
-
-        try (Connection conn = MySQLConfig.getConnection()) {
-            String sql = "SELECT email, rate_per_delivery FROM driver WHERE id = ?";
-
-            for(JsonNode payslip: results){
-                //checking if all drivers are listed
-                String driverId = String.valueOf((payslip.get("driverId").textValue()));
-                PreparedStatement pstmt = conn.prepareStatement(sql);
-                pstmt.setString(1,driverId);
-                ResultSet rs = pstmt.executeQuery();
-                if (!rs.next()) {
-                    ObjectNode unListedDriver = objectMapper.createObjectNode();
-                    unListedDriver.put("driverId", driverId);
-                    unListedDriver.put("firstName",String.valueOf(payslip.get("firstName").textValue()));
-                    unListedDriver.put("lastName", String.valueOf(payslip.get("lastName").textValue()));
-                    unListedDrivers.add(unListedDriver);
-                }
-
-                //cheking for duplicate payslip records
-                String sql2 = "select * from payslip where id = ?";
-                String payslipId = String.valueOf((payslip.get("invoiceNumber").textValue()));
-                PreparedStatement pstmt2 = conn.prepareStatement(sql2);
-                pstmt2.setString(1,payslipId);
-                ResultSet rs2 = pstmt2.executeQuery();
-                if(rs2.next()){
-                    ObjectNode duplicatePayslip = objectMapper.createObjectNode();
-                    duplicatePayslip.put("weekNumber", (payslip.get("weekNumber")));
-                    duplicatePayslip.put("invoiceNumber", String.valueOf(payslip.get("invoiceNumber").textValue()));
-                    duplicatePaySlips.add(duplicatePayslip);
-                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
         }
-        catch (Exception err){
-            System.out.println(err);
-        }
-
 
 
         // Return the extracted data for all uploaded files
@@ -133,20 +132,11 @@ public class PaySlipController {
             driver.setId(paySlipDetails.getDriverId());
             driver.setFirstName(paySlipDetails.getFirstName());
             driver.setLastName(paySlipDetails.getLastName());
+            driver.setEmail(paySlipDetails.getEmail());
+            driver.setRatePerDelivery(paySlipDetails.getRate_per_delivery());
 
             // getting email and rate per delivery from database
             try (Connection conn = MySQLConfig.getConnection()) {
-                String sql = "SELECT email, rate_per_delivery FROM driver WHERE id = ?";
-                PreparedStatement pstmt = conn.prepareStatement(sql);
-                pstmt.setString(1, driver.getId());
-                ResultSet rs = pstmt.executeQuery();
-                if (rs.next()) {
-                    driver.setEmail(rs.getString("email"));
-                    driver.setRatePerDelivery(rs.getFloat("rate_per_delivery"));
-                }
-                else{
-                    return;
-                }
                 String sql2 = "CALL getDriverYearToDateInfo(?)";
                 PreparedStatement pstmt2 = conn.prepareStatement(sql2);
                 pstmt2.setString(1, driver.getId());
