@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import utility.PdfDataReader;
 import utility.PdfGenerator;
 
+import javax.swing.text.html.parser.Entity;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -28,7 +29,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
@@ -208,10 +211,75 @@ public class PaySlipController {
         return ResponseEntity.status(HttpStatus.OK).body("PaySlips processed and saved to database");
     }
 
+
+    @GetMapping("/history")
+    public ResponseEntity<ObjectNode> history(@RequestParam int page) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode response = objectMapper.createObjectNode();
+        ArrayNode groupedResults = objectMapper.createArrayNode(); // Array to hold grouped results
+
+
+        int limit = 5; // Number of records per page
+        int offset = (page - 1) * limit; // Calculate the offset based on the page number
+
+        try (Connection conn = MySQLConfig.getConnection()) {
+            String query = "SELECT p.*, d.firstName, d.lastName, d.rate_per_delivery FROM payslip p INNER JOIN driver d ON p.driverId = d.id INNER JOIN (SELECT DISTINCT weekNumber FROM payslip ORDER BY weekNumber DESC LIMIT 5 OFFSET ?) lw ON p.weekNumber = lw.weekNumber ORDER BY p.weekNumber DESC;";
+
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setInt(1, offset);
+
+            ResultSet rs = pstmt.executeQuery();
+
+            Map<Integer, ArrayNode> tempGroupedData = new LinkedHashMap<>();
+
+            while (rs.next()) {
+                int weekNumber = rs.getInt("weekNumber");
+
+                // If this weekNumber doesn't exist in the map, initialize a new array
+                tempGroupedData.putIfAbsent(weekNumber, objectMapper.createArrayNode());
+
+                // Add the payslip data to the respective weekNumber's array
+                ObjectNode payslip = objectMapper.createObjectNode();
+                payslip.put("id", rs.getString("id"));
+                payslip.put("driverId", rs.getString("driverId"));
+                payslip.put("firstName", rs.getString("firstName"));
+                payslip.put("lastName", rs.getString("lastName"));
+                payslip.put("rate_per_delivery", rs.getString("rate_per_delivery"));
+                payslip.put("payableAmount", rs.getDouble("payableAmount"));
+                payslip.put("totalDeliveries", rs.getDouble("totalDeliveries"));
+                payslip.put("gasOrBonus", rs.getDouble("gasOrBonus"));
+                payslip.put("insurance", rs.getDouble("insurance"));
+                payslip.put("deductions", rs.getDouble("deductions"));
+                tempGroupedData.get(weekNumber).add(payslip);
+            }
+
+            // Convert the map to an array structure
+            for (Map.Entry<Integer, ArrayNode> entry : tempGroupedData.entrySet()) {
+                ObjectNode weekData = objectMapper.createObjectNode();
+                weekData.put("weekNumber", entry.getKey());
+                weekData.set("payslips", entry.getValue());
+                groupedResults.add(weekData);
+            }
+
+            response.set("groupedData", groupedResults);
+            response.put("page", page);
+            response.put("status", "success");
+            return ResponseEntity.ok(response);
+
+        } catch (SQLException e) {
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+
     // Helper method to determine the day of the week
     private String getDayOfWeek(String date) {
         LocalDate localDate = LocalDate.parse(date);
         return localDate.getDayOfWeek().toString();
     }
+
+
 
 }
