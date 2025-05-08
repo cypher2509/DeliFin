@@ -11,6 +11,7 @@ I developed this project end-to-end to apply and showcase skills in full-stack s
 Tech Stack: React, Spring Boot, MySQL
 Deployment: AWS S3, AWS Elastic Beanstalk, Amazon RDS, IAM, CloudWatch
 
+<img width="1470" alt="Screenshot 2025-05-08 at 6 11 47 PM" src="https://github.com/user-attachments/assets/16e6221d-e093-4612-ad8d-7aed1b5d359b" />
 
 ## Architecture Overview
 
