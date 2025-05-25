@@ -42,7 +42,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Allow your frontend's origin
+        configuration.setAllowedOrigins(List.of("http://localhost:5000", "http://delifin-frontend.s3-website-us-east-1.amazonaws.com")); // Allow your frontend's origin
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allow specific HTTP methods
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type")); // Allow specific headers
         configuration.setAllowCredentials(true); // Allow cookies/credentials if needed
