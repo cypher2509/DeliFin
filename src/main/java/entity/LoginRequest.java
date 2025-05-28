@@ -1,17 +1,16 @@
 package entity;
 
 public class LoginRequest {
-    private String username;
+    private String id;          // Changed from username to id
     private String password;
 
-
     // Getters and Setters
-    public String getUsername() {
-        return username;
+    public String getId() {
+        return id;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getPassword() {
@@ -22,4 +21,3 @@ public class LoginRequest {
         this.password = password;
     }
 }
-

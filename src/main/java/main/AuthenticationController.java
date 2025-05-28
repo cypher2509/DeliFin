@@ -8,11 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.*;
 import utility.JwtUtil;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -30,25 +32,31 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody LoginRequest loginRequest) {
         try {
-            String sql = "SELECT password, firstName, lastName FROM users WHERE username = ?";
-            List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, loginRequest.getUsername());
+            System.out.println("Login attempt for ID: " + loginRequest.getId());
+            String sql = "SELECT password, firstName, lastName FROM driver WHERE id = ?";
+            List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, loginRequest.getId());
 
             if (results.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
             }
 
             Map<String, Object> user = results.get(0);
-            String dbPassword = (String) user.get("password");
+            String dbHashedPassword = (String) user.get("password");
             String dbFirstName = (String) user.get("firstName");
             String dbLastName = (String) user.get("lastName");
 
-            // Replace with hashed password check in production
-            if (!loginRequest.getPassword().equals(dbPassword)) {
+            if (!BCrypt.checkpw(loginRequest.getPassword(), dbHashedPassword)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
             }
 
-            String token = jwtUtil.generateToken(loginRequest.getUsername(), dbFirstName, dbLastName);
-            return ResponseEntity.ok(new LoginResponse(token, loginRequest.getUsername(), dbFirstName, dbLastName));
+            String accessToken = jwtUtil.generateToken(loginRequest.getId(), dbFirstName, dbLastName);
+            String refreshToken = UUID.randomUUID().toString();
+
+            // Store refresh token in the database (or you could use a separate table for security)
+            String updateRefreshTokenSql = "UPDATE driver SET refresh_token = ? WHERE id = ?";
+            jdbcTemplate.update(updateRefreshTokenSql, refreshToken, loginRequest.getId());
+
+            return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, loginRequest.getId(), dbFirstName, dbLastName));
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -56,18 +64,49 @@ public class AuthenticationController {
         }
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<Object> refresh(@RequestBody Map<String, String> body) {
+        String refreshToken = body.get("refreshToken");
+        if (refreshToken == null) {
+            return ResponseEntity.badRequest().body("Missing refresh token");
+        }
+
+        try {
+            String sql = "SELECT id, firstName, lastName FROM driver WHERE refresh_token = ?";
+            List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, refreshToken);
+
+            if (results.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
+            }
+
+            Map<String, Object> user = results.get(0);
+            String id = (String) user.get("id");
+            String firstName = (String) user.get("firstName");
+            String lastName = (String) user.get("lastName");
+
+            String newAccessToken = jwtUtil.generateToken(id, firstName, lastName);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("accessToken", newAccessToken));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error refreshing token");
+        }
+    }
+
     @PostMapping("/signup")
     public ResponseEntity<String> signUp(@RequestBody SignUpRequest signUpRequest) {
         try {
-            String checkUserSql = "SELECT COUNT(*) FROM users WHERE username = ?";
-            Integer count = jdbcTemplate.queryForObject(checkUserSql, Integer.class, signUpRequest.getUsername());
+            String checkUserSql = "SELECT COUNT(*) FROM driver WHERE id = ?";
+            Integer count = jdbcTemplate.queryForObject(checkUserSql, Integer.class, signUpRequest.getId());
 
             if (count != null && count > 0) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("ID already exists");
             }
 
-            String insertSql = "INSERT INTO users (username, password) VALUES (?, ?)";
-            int rows = jdbcTemplate.update(insertSql, signUpRequest.getUsername(), signUpRequest.getPassword());
+            String hashedPassword = BCrypt.hashpw(signUpRequest.getPassword(), BCrypt.gensalt());
+            String insertSql = "INSERT INTO driver (id, password, firstName, lastName) VALUES (?, ?, ?, ?)";
+            int rows = jdbcTemplate.update(insertSql, signUpRequest.getId(), hashedPassword, signUpRequest.getFirstName(), signUpRequest.getLastName());
 
             if (rows > 0) {
                 return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
@@ -84,22 +123,22 @@ public class AuthenticationController {
     @PutMapping("/change-password")
     public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
         try {
-            String sql = "SELECT password FROM users WHERE username = ?";
-            List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, changePasswordRequest.getUsername());
+            String sql = "SELECT password FROM driver WHERE id = ?";
+            List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, changePasswordRequest.getId());
 
             if (results.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
             }
 
-            String dbPassword = (String) results.get(0).get("password");
+            String dbHashedPassword = (String) results.get(0).get("password");
 
-            // Replace with hashed password check in production
-            if (!changePasswordRequest.getOldPassword().equals(dbPassword)) {
+            if (!BCrypt.checkpw(changePasswordRequest.getOldPassword(), dbHashedPassword)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Old password is incorrect");
             }
 
-            String updateSql = "UPDATE users SET password = ? WHERE username = ?";
-            int rows = jdbcTemplate.update(updateSql, changePasswordRequest.getNewPassword(), changePasswordRequest.getUsername());
+            String newHashedPassword = BCrypt.hashpw(changePasswordRequest.getNewPassword(), BCrypt.gensalt());
+            String updateSql = "UPDATE driver SET password = ? WHERE id = ?";
+            int rows = jdbcTemplate.update(updateSql, newHashedPassword, changePasswordRequest.getId());
 
             if (rows > 0) {
                 return ResponseEntity.ok("Password updated successfully");

@@ -11,19 +11,16 @@ public class DeliveryDriver {
     private String lastName;
     private String email;
     private double ratePerDelivery;
-    private boolean isActive;
-
 
     // Constructors
     public DeliveryDriver() {}
 
-    public DeliveryDriver(String id, String firstName, String lastName, String email, Float ratePerDelivery, boolean isActive) {
+    public DeliveryDriver(String id, String firstName, String lastName, String email, Float ratePerDelivery) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.ratePerDelivery = ratePerDelivery;
-        this.isActive = isActive;
     }
 
     // Getters and Setters
@@ -65,10 +62,5 @@ public class DeliveryDriver {
 
     public void setRatePerDelivery(double ratePerDelivery) {
         this.ratePerDelivery = ratePerDelivery;
-    }
-
-    public boolean isActive() {return isActive;}
-    public void setActive(boolean isActive) {
-        this.isActive = isActive;
     }
 }

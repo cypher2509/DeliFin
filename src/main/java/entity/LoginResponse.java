@@ -1,47 +1,59 @@
 package entity;
 
 public class LoginResponse {
-    private String token;
-    private String username;
+    private String accessToken;
+    private String refreshToken;
+    private String id;
     private String firstName;
     private String lastName;
 
     // Constructor
-    public LoginResponse(String token, String username , String firstName, String lastName) {
-        this.token = token;
-        this.username = username;
+    public LoginResponse(String accessToken, String refreshToken, String id, String firstName, String lastName) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
     }
 
     // Getters and Setters
-    public String getToken() {
-        return token;
+    public String getAccessToken() {
+        return accessToken;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
-    public String getUsername() {
-        return username;
+    public String getRefreshToken() {
+        return refreshToken;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getFirstName() {
         return firstName;
     }
+
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
+
     public String getLastName() {
         return lastName;
     }
+
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
 }
-

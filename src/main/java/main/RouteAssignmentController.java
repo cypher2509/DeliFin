@@ -1,6 +1,8 @@
 package main;
 
 import entity.RouteAssignment;
+import entity.RouteAssignmentResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -106,20 +108,25 @@ public class RouteAssignmentController {
         }
     }
 
-    // ✅ GET - One assignment by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<RouteAssignment> getAssignmentById(@PathVariable int id) {
-        String sql = "SELECT * FROM route_assignment WHERE id = ?";
+@GetMapping("/{driver_id}")
+public ResponseEntity<RouteAssignmentResponse> getAssignmentByDriverId(@PathVariable String driver_id) {
+    String sql = "SELECT * FROM route_assignment_with_route WHERE driver_id = ? AND `date` = CURRENT_DATE";
+    try {
+        System.out.println(driver_id);
+        List<RouteAssignmentResponse> result = jdbcTemplate.query(
+            sql, 
+            new BeanPropertyRowMapper<>(RouteAssignmentResponse.class), 
+            driver_id
+        );
 
-        try {
-            List<RouteAssignment> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(RouteAssignment.class), id);
-            if (result.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(result.get(0));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+        if (result.isEmpty()) {
+            return ResponseEntity.ok(null);  // Return null if no assignment found
         }
+
+        return ResponseEntity.ok(result.get(0));  // Return the first matching assignment
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.internalServerError().build();  // Internal error
     }
+}
 }
