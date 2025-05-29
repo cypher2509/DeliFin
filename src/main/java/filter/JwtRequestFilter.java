@@ -27,18 +27,30 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         final String authorizationHeader = request.getHeader("Authorization");
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String token = authorizationHeader.substring(7);
-            String username = jwtUtil.extractUsername(token);
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                String username = jwtUtil.extractUsername(token);
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                if (jwtUtil.validateToken(token, username)) {
-                    SecurityContextHolder.getContext().setAuthentication(
-                            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                                    username, null, null));
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    if (jwtUtil.validateToken(token, username)) {
+                        SecurityContextHolder.getContext().setAuthentication(
+                                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                                        username, null, null));
+                    } else {
+                        // Token is invalid
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+                        response.getWriter().write("Invalid JWT token");
+                        return; // Stop further processing
+                    }
                 }
             }
+        } catch (io.jsonwebtoken.JwtException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+            response.getWriter().write("Invalid JWT");
+            return; // Stop further processing
         }
+
         chain.doFilter(request, response);
     }
 }

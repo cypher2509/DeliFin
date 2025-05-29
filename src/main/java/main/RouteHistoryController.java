@@ -86,26 +86,39 @@ public class RouteHistoryController {
     // ✅ Driver starts the route
     @PostMapping("/start")
     public ResponseEntity<String> startRoute(@RequestBody RouteHistory history) {
-        String sql = "INSERT INTO route_history (driver_id, route_id, vehicle_id, date, start_time, start_kmr, assigned_packages, route_status) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, 'started')";
-
+        String insertSql = "INSERT INTO route_history (driver_id, route_id, vehicle_id, date, start_time, start_kmr, assigned_packages, route_status) " +
+                           "VALUES (?, ?, ?, CURRENT_DATE,?, ?, ?, 'started')";
+    
+        String updateSql = "UPDATE route_assignment SET is_started = 1 WHERE driver_id = ? AND route_id = ?";
+    
         try {
-            jdbcTemplate.update(sql,
+            // Insert into route_history
+            jdbcTemplate.update(insertSql,
                     history.getDriverId(),
                     history.getRouteId(),
                     history.getVehicleId(),
-                    history.getDate(),
                     history.getStartTime(),
                     history.getStartKmr(),
                     history.getAssignedPackages()
             );
-            return ResponseEntity.ok("Route started and logged in route history.");
+            System.out.println("Updating route_assignment with driverId=" + history.getDriverId() + ", routeId=" + history.getRouteId() + ", date=" + history.getDate());
+
+            // Update route_assignment to mark is_started = 1
+            int rowsAffected = jdbcTemplate.update(updateSql,
+                    history.getDriverId(),
+                    history.getRouteId()
+            );
+    
+            if (rowsAffected == 0) {
+                return ResponseEntity.status(404).body("No matching route assignment found to update.");
+            }
+    
+            return ResponseEntity.ok("Route started and updated route assignment.");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Failed to start route.");
         }
     }
-
 //    {
 //        "endTime": "11:00:00",
 //            "endKmr": 1516.4,
